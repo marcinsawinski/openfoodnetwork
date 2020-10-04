@@ -43,7 +43,6 @@ WebMock.disable_net_connect!(
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
 Dir[Rails.root.join("spec/support/**/*.rb")].sort.each { |f| require f }
-require 'spree/api/testing_support/setup'
 require 'support/api_helper'
 
 # Capybara config
@@ -131,6 +130,15 @@ RSpec.configure do |config|
     ActionController::Base.perform_caching = caching
   end
 
+  # Show javascript errors in test output with `js_debug: true`
+  config.after(:each, :js_debug) do
+    errors = page.driver.browser.manage.logs.get(:browser)
+    if errors.present?
+      message = errors.map(&:message).join("\n")
+      puts message
+    end
+  end
+
   config.before(:all) { restart_driver }
 
   # Geocoding
@@ -159,7 +167,6 @@ RSpec.configure do |config|
   config.include PreferencesHelper
   config.include ControllerRequestsHelper, type: :controller
   config.include Devise::TestHelpers, type: :controller
-  config.extend  Spree::Api::TestingSupport::Setup, type: :controller
   config.include OpenFoodNetwork::ApiHelper, type: :controller
   config.include OpenFoodNetwork::ControllerHelper, type: :controller
   config.include Features::DatepickerHelper, type: :feature
